@@ -33,13 +33,13 @@ app.post('/login', function(req, res) {
 
   console.log(`Updating session for user ${id}`);
   req.session.userId = id;
-  res.send({ result: 'OK', message: 'Session updated' });
+  res.send({ result: 'OK', data: 'Session updated' });
 });
 
 app.delete('/logout', function(request, response) {
   console.log('Destroying session');
   request.session.destroy(function() {
-    response.send({ result: 'OK', message: 'Session destroyed' });
+    response.send({ result: 'OK', data: 'Session destroyed' });
   });
 });
 
@@ -66,17 +66,30 @@ server.on('upgrade', function(request, socket, head) {
   });
 });
 
+function noop() {}
+
+function heartbeat() {
+  this.isAlive = true;
+}
+
 wss.on('connection', function(ws, request) {
-  ws.on('message', function(message) {
-    //
-    // Here we can now use session parameters.
-    //
-    console.log(
-      `Received message ${message} from user ${request.session.userId}`
-    );
+  ws.on('message', function incoming(data) {
+    wss.clients.forEach(function each(client) {
+      if (client !== ws && client.readyState === WebSocket.OPEN) {
+        client.send(data);
+      }
+    });
   });
 });
 
+// const interval = setInterval(function ping() {
+//   wss.clients.forEach(function each(ws) {
+//     if (ws.isAlive === false) return ws.terminate();
+
+//     ws.isAlive = false;
+//     ws.ping(noop);
+//   });
+// }, 1000);
 //
 // Start the server.
 //

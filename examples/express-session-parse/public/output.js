@@ -1,3 +1,4 @@
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 (function() {
   const messages = document.querySelector('#messages');
   const wsButton = document.querySelector('#wsButton');
@@ -34,6 +35,18 @@
       });
   };
 
+  function heartbeat() {
+    clearTimeout(this.pingTimeout);
+  
+    // Use `WebSocket#terminate()`, which immediately destroys the connection,
+    // instead of `WebSocket#close()`, which waits for the close timer.
+    // Delay should be equal to the interval at which your server
+    // sends out pings plus a conservative assumption of the latency.
+    this.pingTimeout = setTimeout(() => {
+      this.terminate();
+    }, 1000 + 1000);
+  }
+
   let ws;
 
   wsButton.onclick = function() {
@@ -47,17 +60,21 @@
       showMessage('WebSocket error');
     };
     ws.onopen = function() {
+      // heartbeat();
       showMessage('WebSocket connection established');
     };
     ws.onclose = function() {
       showMessage('WebSocket connection closed');
       ws = null;
+      // clearTimeout(this.pingTimeout);
     };
+    // ws.on('message', function(message) {
+    //   showMessage('Received message from server');
+    //   showMessage(message.data);
+    // });
     ws.onmessage = function(message) {
-      console.log('----------------------');
-      console.log(message);
       showMessage('Received message from server');
-      showMessage(message);
+      showMessage(message.data);
     };
   };
 
@@ -71,3 +88,5 @@
     showMessage('Sent "Hello World!"');
   };
 })();
+
+},{}]},{},[1]);
