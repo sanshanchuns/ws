@@ -81,7 +81,7 @@ wss.on('connection', function(ws, request) {
         switch (orig.cmd) {
           case 11:
             // 反馈客户端服务器已经收到消息
-              const response = {...orig, cmd:12};
+              const response = {data:{clientMsgID:orig.clientMsgID}, cmd:12};
               client.send(JSON.stringify(response));
             break;
           case 23:
