@@ -75,9 +75,32 @@ function heartbeat() {
 wss.on('connection', function(ws, request) {
   ws.on('message', function incoming(data) {
     wss.clients.forEach(function each(client) {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(data);
-      }
+      // if (client !== ws && client.readyState === WebSocket.OPEN) {
+        const orig = JSON.parse(data)
+
+        switch (orig.cmd) {
+          case 11:
+            // 反馈客户端服务器已经收到消息
+              const response = {...orig, cmd:12};
+              client.send(JSON.stringify(response));
+            break;
+          case 23:
+            // 反馈客户端服务器已经收到需要更新最后已读的消息
+              const lastRead = {msg:'ok', cmd:24};
+              client.send(JSON.stringify(lastRead));
+            break;
+          default:
+            break;
+        }
+
+        // 发送消息给客户端
+        const message = {...orig, cmd:11};
+        client.send(JSON.stringify(message));
+
+        // 推送聊天对象在线状态
+        const friendStatus = {data:{userId:1000, status:1}, cmd:22};
+        client.send(JSON.stringify(friendStatus));
+      // }
     });
   });
 });
