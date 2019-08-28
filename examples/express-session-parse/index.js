@@ -47,24 +47,24 @@ app.delete('/logout', function(request, response) {
 // Create HTTP server by ourselves.
 //
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ noServer: true });
+const wss = new WebSocket.Server({ server });
 
-server.on('upgrade', function(request, socket, head) {
-  console.log('Parsing session from request...');
+// server.on('upgrade', function(request, socket, head) {
+//   console.log('Parsing session from request...');
 
-  sessionParser(request, {}, () => {
-    if (!request.session.userId) {
-      socket.destroy();
-      return;
-    }
+//   sessionParser(request, {}, () => {
+//     if (!request.session.userId) {
+//       socket.destroy();
+//       return;
+//     }
 
-    console.log('Session is parsed!');
+//     console.log('Session is parsed!');
 
-    wss.handleUpgrade(request, socket, head, function(ws) {
-      wss.emit('connection', ws, request);
-    });
-  });
-});
+//     wss.handleUpgrade(request, socket, head, function(ws) {
+//       wss.emit('connection', ws, request);
+//     });
+//   });
+// });
 
 function noop() {}
 
@@ -72,8 +72,13 @@ function heartbeat() {
   this.isAlive = true;
 }
 
-wss.on('connection', function(ws, request) {
+wss.on('connection', function(ws) {
+  // ws.on('ping', function (e){
+  //   console.log(e)
+  // })
+
   ws.on('message', function incoming(data) {
+    console.log(data)
     wss.clients.forEach(function each(client) {
       // if (client !== ws && client.readyState === WebSocket.OPEN) {
         const orig = JSON.parse(data)
@@ -116,6 +121,6 @@ wss.on('connection', function(ws, request) {
 //
 // Start the server.
 //
-server.listen(8080, function() {
+server.listen(8080, '0.0.0.0', function() {
   console.log('Listening on http://localhost:8080');
 });
